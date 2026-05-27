@@ -16,7 +16,7 @@ q_init   = (L_0 / r) * cos(phi_init);
 % ===== Create UI =====
 fig = uifigure('Name','MACH-joint Full Energy Breakdown','Position',[100 100 1000 900]);
 uilabel(fig, ...
-    'Text','MACH-joint simulator powered by MATLAB', ...
+    'Text','MACH-joint simulator', ...
     'Position',[250 860 500 30], ...
     'FontSize',20, ...
     'FontWeight','bold', ...
@@ -41,15 +41,15 @@ title(axSide,'Side (y-z)');
 title(axIso,'3D View');
 title(axBar,'Elongation of each helical link');
 title(axPhi,'Pitch Angle (\phi) per link');
-title(axEnergyB,'Strain Energy (U_b) per Link');
-title(axEnergyT,'Twisting Energy (U_{tw}) per Link');
+title(axEnergyB,'Strain Energy (V_b) per Link');
+title(axEnergyT,'Twisting Energy (V_{tw}) per Link');
 
 xlabel(axSide,'y'); ylabel(axSide,'z');
 xlabel(axIso,'x'); ylabel(axIso,'y'); zlabel(axIso,'z');
-ylabel(axBar,'\epsilon_b [mm]');
+ylabel(axBar,'\epsilon [mm]');
 ylabel(axPhi,'\phi [rad]');
-ylabel(axEnergyB,'U_b [mJ]');
-ylabel(axEnergyT,'U_{tw} [mJ]');
+ylabel(axEnergyB,'V_b [mJ]');
+ylabel(axEnergyT,'V_{tw} [mJ]');
 
 % Axis Limits & Properties
 xlim(axSide,[-20*s_lamda 20*s_lamda]); ylim(axSide,[0 s_lamda*40]);
@@ -65,6 +65,7 @@ camproj(axIso,'orthographic');
 % Colorbar Setup
 colormap(axIso, turbo(256));
 caxis(axIso, [0 4*s_lamda]);
+
 %cb = colorbar(axIso);
 %cb.Label.String = '|\epsilon_b|';
 %cb.Position = [0.92 0.2 0.02 0.4];
@@ -79,7 +80,7 @@ h.label_dTz = uilabel(fig,'Position',[500 55 300 20]);
 % Interaction Force Dashboard (Gradient of Energy)
 h.panel_force = uipanel(fig, 'Title', 'Interaction Forces / Moments (Energy Gradients)', ...
     'Position', [50 10 400 45], 'FontSize', 12, 'FontWeight', 'bold');
-h.val_Fz  = uilabel(h.panel_force, 'Position', [10 5 120 20], 'Text', 'F_z: 0.00 N');
+h.val_Fz  = uilabel(h.panel_force, 'Position', [10 5 120 20], 'Text', 'P: 0.00 N');
 h.val_Mb  = uilabel(h.panel_force, 'Position', [130 5 120 20], 'Text', 'M_b: 0.00 N.m');
 h.val_Tq  = uilabel(h.panel_force, 'Position', [270 5 200 20], 'Text', 'Tau_q: 0.00 N.m');
 
@@ -150,7 +151,7 @@ function updatePlot(q_f, q_b, dT_z, h, L_0, r, k_link, E_mod, I_area, phi_init)
     
     h.label_q.Text   = sprintf('q = %.2f', q_f);
     h.label_qb.Text  = sprintf('q_b = %.4f', q_b);
-    h.label_dTz.Text = sprintf('dT_z = %.4f', dT_z);
+    h.label_dTz.Text = sprintf('elongation z = %.4f', dT_z);
     
     u = linspace(0, q_f, 100); 
     v = linspace(0, q_b, 100); 
@@ -174,7 +175,7 @@ function updatePlot(q_f, q_b, dT_z, h, L_0, r, k_link, E_mod, I_area, phi_init)
         dSz = gradient(Sz,u);
         L_b = trapz(u, sqrt(dSx.^2+dSy.^2+dSz.^2)); 
         
-        epsilon_b(k) = (L_0 - L_b); 
+        epsilon_b(k) = (L_b-L_0); 
         
         % Local pitch angle per link
         phi_curr(k) = atan(sqrt(max(0, L_b^2 - (r*q_f)^2)) / (r*q_f));
@@ -222,8 +223,8 @@ function updatePlot(q_f, q_b, dT_z, h, L_0, r, k_link, E_mod, I_area, phi_init)
     set(h.barEnergyB, 'YData', U_b, 'CData', linkColors);
     set(h.barEnergyT, 'YData', U_tw, 'CData', linkColors);
     
-    set(h.ylineEB, 'Value', sum(U_b), 'Label', sprintf('Sum U_b = %.3f mJ', sum(U_b)));
-    set(h.ylineET, 'Value', sum(U_tw), 'Label', sprintf('Sum U_{tw} = %.3f mJ', sum(U_tw)));
+    set(h.ylineEB, 'Value', sum(U_b), 'Label', sprintf('Sum V_b = %.3f mJ', sum(U_b)));
+    set(h.ylineET, 'Value', sum(U_tw), 'Label', sprintf('Sum V_{tw} = %.3f mJ', sum(U_tw)));
     
     % Update Text Markers
     for k = 1:4
